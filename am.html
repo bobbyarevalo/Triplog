@@ -20,6 +20,9 @@ h1{font-size:18px;margin:4px 0 2px}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .grid .full{grid-column:1/-1}
 label{display:block;font-size:11px;font-weight:700;color:var(--mut);margin-bottom:4px;letter-spacing:.04em}
+.dw{position:relative}
+.dw input::-webkit-datetime-edit{opacity:0}
+.dl{position:absolute;left:1px;top:1px;bottom:1px;right:48px;display:flex;align-items:center;padding-left:10px;font-size:18px;color:var(--tx);background:var(--bg);border-radius:8px;pointer-events:none}
 input{width:100%;font-size:18px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx)}
 .trip{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
 .trip:first-child{border-top:0}
@@ -45,7 +48,7 @@ textarea{width:100%;font-size:13px;padding:10px;border:1px solid var(--line);bor
 <div class="sub">Van 2 / PITX &middot; AM Shift (5:00AM&ndash;5:00PM)</div>
 
 <div class="card grid">
-  <div class="full"><label>DATE</label><input type="date" id="date"></div>
+  <div class="full"><label>DATE</label><div class="dw"><input type="date" id="date"><span class="dl" id="dlabel"></span></div></div>
   <div><label>ODO IN</label><input type="number" inputmode="numeric" id="oin" placeholder="0"></div>
   <div><label>ODO OUT</label><input type="number" inputmode="numeric" id="oout" placeholder="0"></div>
 </div>
@@ -102,7 +105,7 @@ document.getElementById("send").addEventListener("click",function(){
   try{navigator.clipboard.writeText(txt).then(done,fb);}catch(e){fb();}
 });
 function render(){
-  document.getElementById("date").value=S.date;
+  document.getElementById("date").value=S.date;document.getElementById("dlabel").textContent=fmt(S.date);
   document.getElementById("oin").value=S.oin;
   document.getElementById("oout").value=S.oout;
   S.pax.forEach(function(v,i){document.getElementById("p"+i).value=v;});
