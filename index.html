@@ -61,16 +61,21 @@ textarea{width:100%;font-size:13px;padding:10px;border:1px solid var(--line);bor
 <div class="trip"><div class="n">6</div><div class="info"><div class="time">2:15 AM</div><div class="route">PITX → NEO</div></div><div class="step"><button data-i="5" data-d="-1">&minus;</button><input type="number" inputmode="numeric" min="0" id="p5" placeholder="0"><button class="p" data-i="5" data-d="1">+</button></div></div>
 </div>
 
-<button class="reset" id="reset">Bagong Araw (i-clear lahat)</button>
+<button class="reset" id="newday">Bagong Araw (pumunta sa ngayon)</button>
+<button class="reset" id="reset" style="margin-top:8px">I-clear ang petsang ito</button>
 
 <script>
 var TRIPS=[["5:00 PM","PITX → NEO"],["7:00 PM","PITX → NEO"],["9:15 PM","NEO → PITX"],["10:45 PM","PITX → NEO"],["1:15 AM","NEO → PITX"],["2:15 AM","PITX → NEO"]];
 var KEY="shuttle-trip-log-pm-v1";
-var S={date:"",oin:"",oout:"",pax:TRIPS.map(function(){return ""})};
-try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.pax&&p.pax.length===TRIPS.length)S=p;}}catch(e){}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function blank(d){return {date:d,oin:"",oout:"",pax:TRIPS.map(function(){return ""})};}
+var DBKEY=KEY+"-bydate",DB={},S;
+try{var raw=localStorage.getItem(DBKEY);if(raw)DB=JSON.parse(raw)||{};}catch(e){}
+try{if(!Object.keys(DB).length){var old=localStorage.getItem(KEY);if(old){var o=JSON.parse(old);if(o&&o.date&&o.pax&&o.pax.length===TRIPS.length)DB[o.date]={oin:o.oin||"",oout:o.oout||"",pax:o.pax};}}}catch(e){}
+function persist(){try{localStorage.setItem(DBKEY,JSON.stringify(DB));}catch(e){}}
+function save(){if(S.date){DB[S.date]={oin:S.oin,oout:S.oout,pax:S.pax};}persist();}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-if(!S.date)S.date=today();
+function load(d){var r=DB[d];S=(r&&r.pax&&r.pax.length===TRIPS.length)?{date:d,oin:r.oin||"",oout:r.oout||"",pax:r.pax.slice()}:blank(d);}
+load(today());
 
 var box=document.getElementById("trips");
 
@@ -99,8 +104,12 @@ function render(){
   S.pax.forEach(function(v,i){document.getElementById("p"+i).value=v;});
   calc();
 }
-["date","oin","oout"].forEach(function(id){
+["oin","oout"].forEach(function(id){
   document.getElementById(id).addEventListener("input",function(e){S[id]=e.target.value;save();calc();});
+});
+document.getElementById("date").addEventListener("change",function(e){
+  if(!e.target.value){e.target.value=S.date;return;}
+  save();load(e.target.value);render();
 });
 S.pax.forEach(function(_,i){
   document.getElementById("p"+i).addEventListener("input",function(e){S.pax[i]=e.target.value;save();calc();});
@@ -111,10 +120,12 @@ box.addEventListener("click",function(e){
   var n=Math.max(0,(parseInt(S.pax[i])||0)+d);
   S.pax[i]=String(n);document.getElementById("p"+i).value=n;save();calc();
 });
+document.getElementById("newday").addEventListener("click",function(){
+  save();load(today());render();
+});
 document.getElementById("reset").addEventListener("click",function(){
-  if(!confirm("I-clear lahat para sa bagong araw?"))return;
-  S={date:today(),oin:"",oout:"",pax:TRIPS.map(function(){return ""})};
-  save();render();
+  if(!confirm("I-clear ang laman ng petsang ito?"))return;
+  delete DB[S.date];persist();load(S.date);render();
 });
 render();
 if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(function(){});}
