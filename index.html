@@ -74,6 +74,7 @@ try{if(!Object.keys(DB).length){var old=localStorage.getItem(KEY);if(old){var o=
 function persist(){try{localStorage.setItem(DBKEY,JSON.stringify(DB));}catch(e){}}
 function save(){if(S.date){DB[S.date]={oin:S.oin,oout:S.oout,pax:S.pax};}persist();}
 function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+function fmt(d){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||"");if(!m)return d||"";var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return M[+m[2]-1]+" "+(+m[3])+", "+m[1];}
 function load(d){var r=DB[d];S=(r&&r.pax&&r.pax.length===TRIPS.length)?{date:d,oin:r.oin||"",oout:r.oout||"",pax:r.pax.slice()}:blank(d);}
 load(today());
 
@@ -85,7 +86,7 @@ function summ(){
   var a=parseFloat(S.oin),b=parseFloat(S.oout);
   var km=(isNaN(a)||isNaN(b))?"-":Math.round((b-a)*10)/10;
   var t=0;S.pax.forEach(function(v){t+=parseInt(v)||0;});
-  var L=["SHUTTLE TRIP LOG",document.querySelector(".sub").textContent,"Date: "+(S.date||"-"),"Odo In: "+(S.oin||"-"),"Odo Out: "+(S.oout||"-"),""];
+  var L=["SHUTTLE TRIP LOG",document.querySelector(".sub").textContent,"Date: "+(fmt(S.date)||"-"),"Odo In: "+(S.oin||"-"),"Odo Out: "+(S.oout||"-"),""];
   TRIPS.forEach(function(x,i){L.push((i+1)+". "+x[0]+" "+x[1]+" - "+(S.pax[i]||0)+" pax");});
   
   document.getElementById("out").value=L.join("\n");
